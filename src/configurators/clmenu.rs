@@ -10,6 +10,8 @@ struct Opt {
     /// The audio device to use
     #[arg(short, long, default_value_t = String::from("default"))]
     device: String,
+    #[arg(short, long, default_value_t = 440.0)]
+    frequency: f32,
 
     /// Use the JACK host
     #[cfg(all(
@@ -26,7 +28,7 @@ struct Opt {
     jack: bool,
 }
 
-pub fn configure() -> Result<(SupportedStreamConfig, Device), anyhow::Error> {
+pub fn configure() -> Result<(SupportedStreamConfig, Device, f32), anyhow::Error> {
     let opt = Opt::parse();
     debug!("{:?}", opt);
 
@@ -75,7 +77,9 @@ pub fn configure() -> Result<(SupportedStreamConfig, Device), anyhow::Error> {
     .expect("failed to find output device");
     debug!("Output device: {}", device.name()?);
 
+    let frequency = opt.frequency;
+
     let config = device.default_output_config().unwrap();
 
-    Ok((config, device))
+    Ok((config, device, frequency))
 }

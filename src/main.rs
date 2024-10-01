@@ -19,8 +19,8 @@ fn main() -> anyhow::Result<()> {
         return Err(e);
     }
 
-    let (config, device) = match clmenu::configure() {
-        Ok((config, device)) => (config, device),
+    let (config, device, frequency) = match clmenu::configure() {
+        Ok((config, device, frequency)) => (config, device, frequency),
         Err(e) => {
             error!("Failed to configure audio: {}", e);
             return Err(e);
@@ -30,25 +30,25 @@ fn main() -> anyhow::Result<()> {
     info!("KAudio is running: {:?}", config);
 
     match config.sample_format() {
-        cpal::SampleFormat::I8 => run::<i8>(&device, &config.into()),
-        cpal::SampleFormat::I16 => run::<i16>(&device, &config.into()),
-        // cpal::SampleFormat::I24 => run::<I24>(&device, &config.into()),
-        cpal::SampleFormat::I32 => run::<i32>(&device, &config.into()),
-        // cpal::SampleFormat::I48 => run::<I48>(&device, &config.into()),
-        cpal::SampleFormat::I64 => run::<i64>(&device, &config.into()),
-        cpal::SampleFormat::U8 => run::<u8>(&device, &config.into()),
-        cpal::SampleFormat::U16 => run::<u16>(&device, &config.into()),
-        // cpal::SampleFormat::U24 => run::<U24>(&device, &config.into()),
-        cpal::SampleFormat::U32 => run::<u32>(&device, &config.into()),
-        // cpal::SampleFormat::U48 => run::<U48>(&device, &config.into()),
-        cpal::SampleFormat::U64 => run::<u64>(&device, &config.into()),
-        cpal::SampleFormat::F32 => run::<f32>(&device, &config.into()),
-        cpal::SampleFormat::F64 => run::<f64>(&device, &config.into()),
+        cpal::SampleFormat::I8 => run::<i8>(&device, &config.into(), frequency),
+        cpal::SampleFormat::I16 => run::<i16>(&device, &config.into(), frequency),
+        // cpal::SampleFormat::I24 => run::<I24>(&device, &config.into(), frequency),
+        cpal::SampleFormat::I32 => run::<i32>(&device, &config.into(), frequency),
+        // cpal::SampleFormat::I48 => run::<I48>(&device, &config.into(), frequency),
+        cpal::SampleFormat::I64 => run::<i64>(&device, &config.into(), frequency),
+        cpal::SampleFormat::U8 => run::<u8>(&device, &config.into(), frequency),
+        cpal::SampleFormat::U16 => run::<u16>(&device, &config.into(), frequency),
+        // cpal::SampleFormat::U24 => run::<U24>(&device, &config.into(), frequency),
+        cpal::SampleFormat::U32 => run::<u32>(&device, &config.into(), frequency),
+        // cpal::SampleFormat::U48 => run::<U48>(&device, &config.into(), frequency),
+        cpal::SampleFormat::U64 => run::<u64>(&device, &config.into(), frequency),
+        cpal::SampleFormat::F32 => run::<f32>(&device, &config.into(), frequency),
+        cpal::SampleFormat::F64 => run::<f64>(&device, &config.into(), frequency),
         sample_format => panic!("Unsupported sample format '{sample_format}'"),
     }
 }
 
-pub fn run<T>(device: &cpal::Device, config: &cpal::StreamConfig) -> Result<(), anyhow::Error>
+pub fn run<T>(device: &cpal::Device, config: &cpal::StreamConfig, frequency: f32) -> Result<(), anyhow::Error>
 where
     T: SizedSample + FromSample<f32>,
 {
@@ -59,7 +59,7 @@ where
     let mut sample_clock = 0f32;
     let mut next_value = move || {
         sample_clock = (sample_clock + 1.0) % sample_rate;
-        (sample_clock * 440.0 * 2.0 * std::f32::consts::PI / sample_rate).sin()
+        (sample_clock * frequency * 2.0 * std::f32::consts::PI / sample_rate).sin()
     };
 
     let err_fn = |err| error!("an error occurred on stream: {}", err);
